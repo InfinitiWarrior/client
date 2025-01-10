@@ -1,23 +1,35 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
-function BorrowedBooks() {
-  const [borrowedBooks, setBorrowedBooks] = useState([]);
+function BorrowedBooks({ userRole }) {
+  const [borrowed_Books, setBorrowedBooks] = useState([]);
 
   useEffect(() => {
-    // Replace with API call to fetch borrowed books
-    setBorrowedBooks([
-      { id: 1, title: 'Book 1', borrower: 'User 1' },
-      { id: 2, title: 'Book 2', borrower: 'User 2' },
-    ]);
-  }, []);
+    if (userRole === 'staff') {
+      // Fetch borrowed books if the user is staff
+      axios.get('http://localhost:5000/api/borrowed-books')
+        .then((response) => {
+          setBorrowedBooks(response.data);
+        })
+        .catch((error) => {
+          console.error('Error fetching borrowed books:', error);
+        });
+    } else {
+      setBorrowedBooks([]); // Don't display borrowed books for non-staff users
+    }
+  }, [userRole]);
+
+  if (userRole !== 'staff') {
+    return <p>You do not have access to this section.</p>;
+  }
 
   return (
     <div>
       <h2>Borrowed Books</h2>
       <ul>
-        {borrowedBooks.map((book) => (
-          <li key={book.id}>
-            {book.title} - Borrowed by {book.borrower}
+        {borrowed_Books.map((borrowedBook) => (
+          <li key={borrowedBook.borrow_id}>
+            Book ID: {borrowedBook.book_id} - Borrowed by User ID: {borrowedBook.user_id}
           </li>
         ))}
       </ul>
