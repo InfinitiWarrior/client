@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-function Login({ setLoggedIn, setUserRole }) {
+function Login({ setLoggedIn, setToken, setLoggedInAs }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -12,26 +12,17 @@ function Login({ setLoggedIn, setUserRole }) {
     e.preventDefault();
 
     try {
-      // Make API request to login
-      const response = await axios.post('http://localhost:5000/api/login', {
-        username,
-        password,
-      });
+      const response = await axios.post('http://192.168.1.190:5000/api/login', { username, password });
 
       if (response.status === 200) {
+        const { token, role } = response.data;
         setLoggedIn(true);
-        setUserRole(response.data.role); // Save the role from the response
+        setLoggedInAs(username);
+        setToken(token);
+        localStorage.setItem('loggedInAs', username);
+        localStorage.setItem('token', token);
 
-        // Save to localStorage to persist login status
-        localStorage.setItem('userRole', response.data.role);
-        localStorage.setItem('loggedIn', 'true');
-
-        // Redirect based on role or other conditions
-        if (response.data.role === 'staff') {
-          navigate('/borrowedbooks'); // Navigate to the staff dashboard
-        } else {
-          navigate('/booklist'); // Navigate to the student dashboard
-        }
+        navigate(role === 'staff' ? '/borrowedbooks' : '/booklist');
       }
     } catch (err) {
       setError('Login failed. Please check your credentials.');

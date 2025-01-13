@@ -4,57 +4,81 @@ import DarkModeToggle from './components/DarkModeToggle';
 import Login from './components/Login';
 import BookList from './components/BookList';
 import BorrowedBooks from './components/BorrowedBooks';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Link } from 'react-router-dom';
 
 function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState('');
+  const [token, setToken] = useState('');
+  const [loggedInAs, setLoggedInAs] = useState('');
 
-  // Initialize login state and dark mode state from localStorage
   useEffect(() => {
-    const storedLoggedIn = localStorage.getItem('loggedIn') === 'true';
-    const storedRole = localStorage.getItem('userRole');
+    const storedToken = localStorage.getItem('token');
+    const storedLoggedInAs = localStorage.getItem('loggedInAs');
     const storedDarkMode = localStorage.getItem('darkMode') === 'true';
 
-    if (storedLoggedIn) {
+    if (storedToken && storedLoggedInAs) {
       setLoggedIn(true);
-      setUserRole(storedRole);
+      setToken(storedToken);
+      setLoggedInAs(storedLoggedInAs);
     }
     setDarkMode(storedDarkMode);
   }, []);
 
-  // Persist dark mode state to localStorage
   useEffect(() => {
     localStorage.setItem('darkMode', darkMode);
     document.body.className = darkMode ? 'dark-mode' : 'light-mode';
   }, [darkMode]);
 
+  const handleLogout = () => {
+    setLoggedIn(false);
+    setToken('');
+    setLoggedInAs('');
+    localStorage.removeItem('token');
+    localStorage.removeItem('loggedInAs');
+  };
+
   return (
     <div className={darkMode ? 'dark' : ''}>
       <header className="header">
         <h1>Library Management</h1>
-        <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
+        <nav className="navbar">
+          <Link to="/">Home</Link>
+          {loggedIn && <Link to="/booklist">Book List</Link>}
+          {loggedIn && <Link to="/borrowedbooks">Borrowed Books</Link>}
+          <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
+          {loggedIn && <button onClick={handleLogout}>Logout</button>}
+        </nav>
       </header>
 
       <Routes>
-        {/* Default route for login and book list */}
         <Route
           path="/"
-          element={loggedIn ? (
-            <div>
-              <BookList />
-              <BorrowedBooks />
-            </div>
-          ) : (
-            <Login setLoggedIn={setLoggedIn} setUserRole={setUserRole} />
-          )}
+          element={
+            loggedIn ? (
+              <div className="homepage">
+                <h2>Welcome, {loggedInAs}!</h2>
+                <div>
+                  <Link to="/booklist">
+                    <button>Go to Book List</button>
+                  </Link>
+                  <Link to="/borrowedbooks">
+                    <button>Go to Borrowed Books</button>
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <Login setLoggedIn={setLoggedIn} setToken={setToken} setLoggedInAs={setLoggedInAs} />
+            )
+          }
         />
-
-        {/* Specific route for /booklist */}
         <Route
           path="/booklist"
-          element={loggedIn ? <BookList /> : <Login setLoggedIn={setLoggedIn} setUserRole={setUserRole} />}
+          element={loggedIn ? <BookList token={token} /> : <Login setLoggedIn={setLoggedIn} setToken={setToken} setLoggedInAs={setLoggedInAs} />}
+        />
+        <Route
+          path="/borrowedbooks"
+          element={loggedIn ? <BorrowedBooks token={token} /> : <p>Access denied.</p>}
         />
       </Routes>
     </div>

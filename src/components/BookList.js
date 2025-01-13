@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-function BookList() {
+function BookList({ token }) {
   const [books, setBooks] = useState([]);
 
   useEffect(() => {
-    // Fetch books from the backend API
-    axios.get('http://localhost:5000/api/books')
-      .then((response) => {
-        setBooks(response.data);
+    axios
+      .get('http://192.168.1.190:5000/api/books', {
+        headers: { Authorization: `Bearer ${token}` },
       })
-      .catch((error) => {
-        console.error('Error fetching books:', error);
-      });
-  }, []);
+      .then((response) => setBooks(response.data))
+      .catch((error) => console.error('Error fetching books:', error));
+  }, [token]);
 
   return (
     <div>

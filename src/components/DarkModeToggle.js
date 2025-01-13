@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-function DarkModeToggle({ setDarkMode }) {
+function DarkModeToggle({ setDarkMode, darkMode }) {
   return (
-    <button onClick={() => setDarkMode((prev) => !prev)}>
-      Toggle Dark Mode
+    <button 
+      className="dark-mode-toggle" 
+      onClick={() => setDarkMode(!darkMode)}
+    >
+      {darkMode ? '🌙' : '🌞'}
     </button>
   );
 }
